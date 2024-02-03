@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+<title>POKEMON FIGHTER</title>
+</head>
+
+<body>
+
+<style type="text/css">
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pokemon-spinner {
+  position: relative;
+  height: 100px;
+  width: 100px;
+  background: linear-gradient(to bottom, rgb(254, 0, 1) 50%, white 50% );
+  border-radius: 50%;
+  border: 8px solid black;
+  animation: spin 1s linear infinite;
+}
+
+.pokemon-spinner::before {
+  content: '';
+  position: absolute;
+  height: 8px;
+  width: 100px;
+  background: black;
+  top: 50px;
+  transform: translatey(-50%);
+}
+
+.pokemon-spinner::after {
+  content: '';
+  position: absolute;
+  height: 38px;
+  width: 38px;
+  border-radius: 50%;
+  background: white;
+  top: 50px;
+  left: 50px;
+  transform: translate(-50%, -50%);
+  box-shadow: inset 0 0 0 8px black, inset 0 0 0 10px white, inset 0 0 0 12px black;
+
+}
+
+/* Spin Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Pokémon-themed CSS button */
+.pokemon-button {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  background-color: #ffcc00;
+  color: #333;
+  border: 2px solid #ffcc00;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.pokemon-button:hover {
+  background-color: #ff9900;
+  color: #fff;
+  transform: scale(1.1);
+}
+</style>
+
+
+<div>
+    <button id="pokemon-button" class="pokemon-button">A new Pokemon appears...</button>
+    <div id="pokemon-display"></div>
+</div>
+
+<script id="template" type="text/template">
+<p id="pokemonName" style="font:60px consolas">{{name}}</p>
+<p style="font:30px consolas;font-style:italic;">a {{#types}}{{type.name}} {{/types}} type pokemon</p>
+<p><img src="{{sprites.front_default}}" width="300">
+    <button id="attack-button" class="pokemon-button">POKEMON ATTACKS!!!</button><br>
+    <span style="font:80px consolas;" id="attack-name"></span>
+</p>
+</script>
+
+<script src="https://unpkg.com/mustache@latest"></script>
+
+<script>
+    function rand_incl(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Function to make a GET request
+    function fetchData(url, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                callback(JSON.parse(xhr.responseText));
+            }
+        };
+        xhr.open("GET", url, true);
+        xhr.send();
+    }
+
+    function renderTemplate(templateId, data, targetId) {
+        var template = document.getElementById(templateId).innerHTML;
+        var rendered = Mustache.render(template, data);
+        document.getElementById(targetId).innerHTML = rendered;
+    }
+
+    let moves = [];
+
+    function updateHTML(data) {
+        moves = data.moves;
+        setTimeout(function() {
+            renderTemplate('template', data, 'pokemon-display');
+
+            document
+              .getElementById('attack-button')
+              .addEventListener('click', attackHandler);
+        }, 3000);
+
+        // Working w the abilities:
+        // var abilitiesList = data.abilities.map(function(ability) {
+        //     return ability.ability.name;
+        // }).join(', ');
+        // document.getElementById("pokemonAbilities").innerText = "Abilities: " + abilitiesList;
+    }
+
+    function buttonClickHandler(evt) {
+        var apiUrl = "https://pokeapi.co/api/v2/pokemon/" + rand_incl(1,1302).toString();
+        document.getElementById('pokemon-display').innerHTML = "<div class='pokemon-spinner'> </div>"
+        fetchData(apiUrl, updateHTML);
+    }
+
+    function  attackHandler(evt) {
+      document
+        .getElementById('attack-name')
+        .innerText = moves[rand_incl(0,moves.length-1)].move.name + "!!!!!";
+    }
+
+    document
+      .getElementById('pokemon-button')
+      .addEventListener('click', buttonClickHandler);
+
+</script>
+
+</body>
+</html>
